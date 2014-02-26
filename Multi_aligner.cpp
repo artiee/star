@@ -1,132 +1,128 @@
 #include "Multi_aligner.h"
 
-Multi_aligner::Multi_aligner(Sequence s[], int count){
-	for(int i=0; i<count; i++){
+Multi_aligner::Multi_aligner(Sequence s[], int count) {
+	for (int i = 0; i < count; i++) {
 		seq.push_back(s[i]);
 	}
 	verbalize = false;
 }
-Multi_aligner::Multi_aligner(string s[], int count){
+Multi_aligner::Multi_aligner(string s[], int count) {
 
-	// Muunnetaan stringit sekvensseiksi:
-	for(int i=0; i<count; i++){
+	// Transform strings into sequences:
+	for (int i = 0; i < count; i++) {
 		Sequence temp(s[i]);
 		seq.push_back(temp);
 	}
 	verbalize = false;
 }
 
-// testausta varten:
-void Multi_aligner::print(){
-	for(unsigned int i=0;i<seq.size();i++){
+// for testing purposes:
+void Multi_aligner::print() {
+	for (unsigned int i = 0; i < seq.size(); i++) {
 		cout << seq[i].toString() << endl;
 	}
 }
 
-int Multi_aligner::find_center_sequence(){
-/*
-	Finds the sequence that provides the best match to other sequences
-	ae: Sequence[1..n] != null
-    le: for each sequence in Sequence[] s, local/global alignment with s[n] and result provides most matches.
-*/
-/*
-	Miten summat lasketaan tässä:
-	http://staff.cs.utu.fi/kurssit/johdatus_bioinformatiikkaan_I/syksy_2004/rinnastukset2.pdf
-	Sivulla käytetty pisteytys:
-		täsmäys = 1
-		epätäsmäys = -1
-		aukko = -2
-		aukko molemmissa = 0
-
-*/
-
-	/*
-		Kaikkia sekvenssejä verrataan muiden sekvenssien kanssa.
-		Sekvenssin tulisi olla mahdollisimman samanlainen kaikkien muiden kanssa.
-		Tämä tarkoittaa että valitaan sekvenssi jonka count_score(..) yhteenlaskettu
-		summa muiden sekvenssien kanssa on suurin.
-	*/
-	int score 		  = 0;
-	int best_score    = -9999;
+/**
+  *	Finds the sequence that provides the best match to other sequences
+  *	ae: Sequence[1..n] != null
+  * le: for each sequence in Sequence[] s, local/global alignment with s[n] and result provides most matches.
+  *
+  *	Miten summat lasketaan tï¿½ssï¿½:
+  *	http://staff.cs.utu.fi/kurssit/johdatus_bioinformatiikkaan_I/syksy_2004/rinnastukset2.pdf
+  *	Sivulla kï¿½ytetty pisteytys:
+  *		tï¿½smï¿½ys = 1
+  *		epï¿½tï¿½smï¿½ys = -1
+  *		aukko = -2
+  *		aukko molemmissa = 0
+  *
+  *
+  *		Kaikkia sekvenssejï¿½ verrataan muiden sekvenssien kanssa.
+  *		Sekvenssin tulisi olla mahdollisimman samanlainen kaikkien muiden kanssa.
+  *		Tï¿½mï¿½ tarkoittaa ettï¿½ valitaan sekvenssi jonka count_score(..) yhteenlaskettu
+  *		summa muiden sekvenssien kanssa on suurin.
+  */
+int Multi_aligner::find_center_sequence() {
+	int score = 0;
+	int best_score = -9999;
 	int best_sequence = 0;
 	vector<Sequence> *temp;
 
-	for(unsigned int i=0;i<seq.size();i++){
+	for (unsigned int i = 0; i < seq.size(); i++) {
 		score = 0;
-		for(unsigned int j=0;j<seq.size();j++){
-				if(i!=j){
+		for (unsigned int j = 0; j < seq.size(); j++) {
+				if (i != j) {
 					Global_aligner ga(seq[i], seq[j]);
 					ga.fill_matrix();
 					temp = ga.traceback();
-					score += count_score(temp->at(0), temp->at(1), 1,-1,-2/*match, mismatch, cap*/);
+					score += count_score(temp->at(0), temp->at(1), 1,-1,-2); /*last three params: match, mismatch, cap*/
 				}
 		}
-		if(score > best_score){
+		if (score > best_score) {
 			best_score = score;
 			best_sequence = i;
 		}
-		if(verbalize) cout << "\tPisteet yhteensa: " << score << endl;
+		if (verbalize) {cout << "\tPisteet yhteensa: " << score << endl;}
 	}
-	if(verbalize) cout << "Paras pistem. " << best_score << endl;
-	if(verbalize) cout << "Sekvenssilla " << best_sequence << endl;
+	if (verbalize) {cout << "Paras pistem. " << best_score << endl;}
+	if (verbalize) {cout << "Sekvenssilla " << best_sequence << endl;}
 
 	return best_sequence;
 
 }
 
-vector<Sequence>* Multi_aligner::STAR(){
-/*
-	Uses the STAR-method to make the multi alignment	
-*/
+/**
+ *	Uses the STAR-method to make the multi alignment	
+ */
+vector<Sequence>* Multi_aligner::STAR() {
 	vector<Sequence> *temp;
 	vector<Sequence> *result = new vector<Sequence>;
 
-	if(verbalize) cout << "Etsitaan keskimmainen sekvenssi:" << endl;
+	if (verbalize) {cout << "Etsitaan keskimmainen sekvenssi:" << endl;}
 	unsigned int center = find_center_sequence();
 
-/*
-	Rinnastetaan vielä kerran parhaimmin sopivan sekvenssin kanssa kaikki muut:
-*/
-	if(verbalize) cout << "Rinnastetaan keskimmainen sekvenssi muiden kanssa:" << endl;
+    // Rinnastetaan vielï¿½ kerran parhaimmin sopivan sekvenssin kanssa kaikki muut:
+
+	if (verbalize) {cout << "Rinnastetaan keskimmainen sekvenssi muiden kanssa:" << endl;}
 
 	bool center_added = false;
 
-	for(unsigned int i=0;i<seq.size();i++){
-		if(i!=center){
+	for (unsigned int i = 0; i < seq.size(); i++) {
+		if (i != center) {
 			Global_aligner ga(seq[center], seq[i]);
 			ga.fill_matrix();
 			temp = ga.traceback();
-			if(center_added == false){
-				result->push_back(temp->at(0)); // keskimmäinen sekvenssi vektorin alkuun.
+			if (center_added == false) {
+				result->push_back(temp->at(0)); // keskimmï¿½inen sekvenssi vektorin alkuun.
 				center_added = true;
 			}
 			result->push_back(temp->at(1));
 		}
 	}
 /*
-	Lisätään sekvenssien loppuun tarvittava määrä aukkoja pisimmän mukaan.
-		Ensin etsitään pisin sekvenssi:
+	Lisï¿½tï¿½ï¿½n sekvenssien loppuun tarvittava mï¿½ï¿½rï¿½ aukkoja pisimmï¿½n mukaan.
+		Ensin etsitï¿½ï¿½n pisin sekvenssi:
 */
-	if(verbalize) cout << "Etsitaan pisin:" << endl;
+	if (verbalize) cout << "Etsitaan pisin:" << endl;
 	int len = 0;
 	int len_tmp = 0;
-	for(unsigned int i=0;i<result->size();i++){
+	for (unsigned int i = 0; i < result->size(); i++) {
 		len_tmp = result->at(i).toString().size();
-		if(len_tmp > len){
+		if (len_tmp > len) {
 			len = len_tmp;
 		}
 	}
 /*
-	Kaikille tätä lyhyemmille sekvensseille lisätään aukkoja ('*')
-	kunnes ne ovat yhtä pitkiä kuin pisin sekvenssi.
+	Kaikille tï¿½tï¿½ lyhyemmille sekvensseille lisï¿½tï¿½ï¿½n aukkoja ('*')
+	kunnes ne ovat yhtï¿½ pitkiï¿½ kuin pisin sekvenssi.
 */
-	if(verbalize) cout << "Lisataan aukot:" << endl;
-	for(unsigned int i=0;i<result->size();i++){
+	if (verbalize) cout << "Lisataan aukot:" << endl;
+	for (unsigned int i = 0; i < result->size(); i++) {
 		len_tmp = result->at(i).toString().size();
-		if(len_tmp < len){
+		if (len_tmp < len) {
 			string temp;
 			temp = result->at(i).toString();
-			while(temp.size()<len){
+			while (temp.size() < len) {
 				temp = temp + '*';
 			}
 			result->at(i) = temp;
@@ -136,35 +132,35 @@ vector<Sequence>* Multi_aligner::STAR(){
 	return result;
 }
 
-int Multi_aligner::count_score(Sequence s1, Sequence s2, int match, int mismatch, int cap){
+int Multi_aligner::count_score(Sequence s1, Sequence s2, int match, int mismatch, int cap) {
 /*
-	Miten summat lasketaan tässä:
+	Miten summat lasketaan tï¿½ssï¿½:
 	http://staff.cs.utu.fi/kurssit/johdatus_bioinformatiikkaan_I/syksy_2004/rinnastukset2.pdf
 */
-	// katsotaan kumpi on lyhyempi (vaikka niiden pitäisi olla tässä jo samanpituisia):
+	// katsotaan kumpi on lyhyempi (vaikka niiden pitï¿½isi olla tï¿½ssï¿½ jo samanpituisia):
 	string tmp_seq1;
 	string tmp_seq2;
-	if(s1.toString().size()<=s2.toString().size()){
+	if (s1.toString().size()<=s2.toString().size()) {
 		tmp_seq1 = s1.toString();
 		tmp_seq2 = s2.toString();
-	} else{
+	} else {
 		tmp_seq1 = s2.toString();
 		tmp_seq2 = s1.toString();
 	}
-	// nyt tmp_seq1 sisältää lyhyemmän sekvenssin.
+	// nyt tmp_seq1 sisï¿½ltï¿½ï¿½ lyhyemmï¿½n sekvenssin.
 	int score = 0;
 
-	for(unsigned int i=0;i<tmp_seq1.size();i++){
-		if(tmp_seq1[i]==tmp_seq2[i] && tmp_seq1[i]!='*'){
+	for (unsigned int i = 0; i < tmp_seq1.size(); i++) {
+		if (tmp_seq1[i] == tmp_seq2[i] && tmp_seq1[i] != '*') {
 			score += match;
-		} else if(tmp_seq1[i]==tmp_seq2[i]){
+		} else if (tmp_seq1[i] == tmp_seq2[i]) {
 			score += 0; // jotta ei lasketa aukkoja kahteen kertaan.
-		} else if(tmp_seq1[i]!=tmp_seq2[i] && tmp_seq1[i]!='*' && tmp_seq2[i]!='*'){
+		} else if (tmp_seq1[i] != tmp_seq2[i] && tmp_seq1[i] != '*' && tmp_seq2[i] != '*') {
 			score += mismatch;
 		} else {
 			score += cap;
 		}
 	}
-	if(verbalize) cout << "\tPisteet: " << score << endl;
+	if (verbalize) cout << "\tPisteet: " << score << endl;
 	return score;
 }
