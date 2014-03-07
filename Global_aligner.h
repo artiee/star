@@ -9,7 +9,7 @@
 #include "Sequence.h"
 
 using namespace std;
-/*
+/**
 
 	Global_aligner is a global alignment algorithm.
 
@@ -21,16 +21,17 @@ using namespace std;
 		mismatch = -1p
 		cap	= -2p
 
-*/
-class Global_aligner : public Sequence_aligner{
+  */
+class Global_aligner : public Sequence_aligner {
+
 public:
-	Global_aligner(Sequence a, Sequence b);
-	Global_aligner(string a, string b);
-	vector<Sequence>* traceback();
-	void initialize_matrix(string seq1, string seq2);
+  Global_aligner(Sequence a, Sequence b);
+  Global_aligner(string a, string b);
+  vector<Sequence>* traceback();
+  void initialize_matrix(string seq1, string seq2);
 
 private:
-	html_output * html_out;
+  html_output * html_out;
 
 };
 #endif
