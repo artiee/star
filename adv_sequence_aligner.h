@@ -34,7 +34,7 @@ public:
 		int caps = 0;
 
 		// adv. algoritmissa aloitetaan viimeisest‰ alkiosta --> kumpikin sekvenssi globaalisti rinnastettu.
-		int pos = x_koko * y_koko - 1;
+		int pos = x_size * y_size - 1;
 		// 2. aloita takaisinj‰ljitys.
 		cout << "traceback started, please wait!! Pos: " << pos << endl;
 
@@ -45,9 +45,9 @@ public:
 			int z = pos;
 			int y=0;
 			while(z>0){
-				if(z-x_koko<=0){break;}
+				if(z-x_size<=0){break;}
 				y++;
-				z = z - x_koko;
+				z = z - x_size;
 			}
 			int x = z-1;
 			y = y - 1;
@@ -68,13 +68,13 @@ public:
 			if(tbmp[pos][1] == 1){ //
 				//cout << "got here1" << endl;
 				result_sequence1 += get_seq1_letter(pos);
-				if(pos > x_koko){ // ei menn‰ ali seq2:sta
+				if(pos > x_size){ // ei menn‰ ali seq2:sta
 					result_sequence2 += get_seq2_letter(pos);
 				} else{
 					result_sequence2 += "*";
 					caps++;
 				}
-				pos = pos - x_koko - 1;
+				pos = pos - x_size - 1;
 			} else if(tbmp[pos][0] == 1){ // horisontaali liike, lis‰t‰‰n seq2:een cap.
 				//cout << "got here2" << endl;
 				/*
@@ -94,14 +94,14 @@ public:
 					Ongelma: seq2:sta luetaan yli tai ali indeksin.
 					tarkistetaan ettei menn‰ taulukon rajojen ali:
 				*/
-				if(pos > x_koko){ // ei menn‰ ali seq2:sen indeksin.
+				if(pos > x_size){ // ei menn‰ ali seq2:sen indeksin.
 					result_sequence1 += "*";
 					result_sequence2 += get_seq2_letter(pos);
 					caps++;
 				} else{
 					cout << "End." << endl;
 				}
-				pos -= x_koko;
+				pos -= x_size;
 			} else{
 				cout << "WARNING, NO TRACEBACK POINTER FOUND!" << endl;
 				pos--;

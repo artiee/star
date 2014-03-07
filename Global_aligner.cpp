@@ -31,7 +31,7 @@ vector<Sequence>* Global_aligner::traceback() {
 	string result_sequence2;
 
 	// The algorithm starts from the last element --> both sequences globally aligned.
-	int pos = x_koko * y_koko - 1;
+	int pos = x_size * y_size - 1;
 
 	if (verbalize) {cout << "traceback started, please wait. Pos: " << pos << endl;}
 
@@ -51,12 +51,12 @@ vector<Sequence>* Global_aligner::traceback() {
 
 		if (tbmp[pos][1] == 1) {
 			result_sequence1 += get_seq1_letter(pos);
-			if (pos > x_koko) { // didn't go below seq2
+			if (pos > x_size) { // didn't go below seq2
 				result_sequence2 += get_seq2_letter(pos);
 			} else{
 				result_sequence2 += "*";
 			}
-			pos = pos - x_koko - 1;
+			pos = pos - x_size - 1;
 		} else if (tbmp[pos][0] == 1) { // horizontal move, add cap into seq2
 
 			 //	check that won't go below the seq1:
@@ -70,13 +70,13 @@ vector<Sequence>* Global_aligner::traceback() {
 		} else if (tbmp[pos][2] == 1){ // vertical move, add cap into seq1
 			// Check that seq2 is read over or below the index.
 			// Check that didn't go below the table bounds:
-			if (pos >= x_koko) { // didn't go below the seq2 index
+			if (pos >= x_size) { // didn't go below the seq2 index
 				result_sequence1 += "*";
 				result_sequence2 += get_seq2_letter(pos);
 			} else {
-				cout << "End2. Pos = " << pos << ", x_koko = " << x_koko << endl;
+				cout << "End2. Pos = " << pos << ", x_size = " << x_size << endl;
 			}
-			pos -= x_koko;
+			pos -= x_size;
 		} else {
 			cout << "WARNING, NO TRACEBACK POINTER FOUND!: " << "mp[pos]: " << mp[pos] << ", pos = " << pos << endl;
 			print_matrix();
@@ -109,15 +109,15 @@ vector<Sequence>* Global_aligner::traceback() {
 
 void Global_aligner::initialize_matrix(string seq1, string seq2) {
 	if (verbalize) {cout << "Alustan matriisin:" << endl;}
-	y_koko = seq2.size() + 1;
-	x_koko = seq1.size() + 1;
+	y_size = seq2.size() + 1;
+	x_size = seq1.size() + 1;
 
-	if (verbalize) {cout << "\tx koko: " << x_koko << endl;}
-	if (verbalize) {cout << "\ty koko: " << y_koko << endl;}
+	if (verbalize) {cout << "\tx koko: " << x_size << endl;}
+	if (verbalize) {cout << "\ty koko: " << y_size << endl;}
 
-	mp = new int[x_koko * y_koko];
+	mp = new int[x_size * y_size];
 	if (verbalize) {cout << "\tLuon traceback matriisin." << endl;}
-	tbmp = new int*[x_koko * y_koko];
+	tbmp = new int*[x_size * y_size];
 
     // The wanted initialization is as follows:
 	//   ------
@@ -126,17 +126,17 @@ void Global_aligner::initialize_matrix(string seq1, string seq2) {
 	//	|-2....
 	//  This means that the caps become more expensive.
 	int add = 0;
-	for (int x = 0; x < x_koko; x++) {
+	for (int x = 0; x < x_size; x++) {
 		mp[x] = 0 + add;
 		add--;
 	}
 	add = -1;
-	for (int y = 1; y < y_koko; y++) {
-		mp[x_koko * y] = 0 + add;
+	for (int y = 1; y < y_size; y++) {
+		mp[x_size * y] = 0 + add;
 		add--;
 	}
 	if (verbalize) {cout << "\tAlustan traceback matriisin..." << endl;}
-	for (int i = 0; i < x_koko * y_koko; i++) {
+	for (int i = 0; i < x_size * y_size; i++) {
 		tbmp[i] = new int[2]; // [left,ldiag,top], possible values: 1, 0.
 		for (int j = 0; j < 3; j++) {
 			tbmp[i][j] = 0;	// values are initialized as zero

@@ -7,32 +7,37 @@ int Sequence_aligner::left(int pos) {
 	}
 	return mp[pos - 1];
 }
+
 int Sequence_aligner::ldiag(int pos) {
-	if (pos - x_koko - 1 < 0) {
+	if (pos - x_size - 1 < 0) {
 	    return MIN;
 	}
-	return mp[pos - x_koko - 1];
+	return mp[pos - x_size - 1];
 }
+
 int Sequence_aligner::top(int pos) {
-	if (pos - x_koko < 0) {
+	if (pos - x_size < 0) {
 	    return MIN;
 	}
-	return mp[pos - x_koko];
+	return mp[pos - x_size];
 }
+
 int Sequence_aligner::left_match(int pos) {
 	if (get_seq1_letter(pos - 1) == get_seq2_letter(pos - 1)) {
 	    return 1;
 	}
 	return 0;
 }
+
 int Sequence_aligner::ldiag_match(int pos) {
-	if (get_seq1_letter(pos - x_koko-1) == get_seq2_letter(pos - x_koko - 1)) {
+	if (get_seq1_letter(pos - x_size-1) == get_seq2_letter(pos - x_size - 1)) {
 	    return 1;
 	}
 	return 0;
 }
+
 int Sequence_aligner::top_match(int pos) {
-	if (get_seq1_letter(pos - x_koko) == get_seq2_letter(pos - x_koko)) {
+	if (get_seq1_letter(pos - x_size) == get_seq2_letter(pos - x_size)) {
 	    return 1;
 	}
 	return 0;
@@ -41,10 +46,10 @@ int Sequence_aligner::top_match(int pos) {
 char Sequence_aligner::get_seq1_letter(int pos) const {
 	int z = pos;
 	while (z > 0) {
-		if (z - x_koko <= 0) {
+		if (z - x_size <= 0) {
 		  break;
 		}
-		z = z - x_koko;
+		z = z - x_size;
 	}
 	int x = z;
 	//cout << "x: " << x << endl;
@@ -54,31 +59,30 @@ char Sequence_aligner::get_seq1_letter(int pos) const {
 char Sequence_aligner::get_seq2_letter(int pos) const {
 	/*
 		1. Walk to the begin of row
-		2. seq2:sta vastaava index = rivinro -1
-			rivinro = index / x_koko
+		2. seq2 corresponding index = row number - 1
+			row number = index / x_size
 
 
 		  _ab
 		 |012
 		c|345
 
-		x_koko    = 3
-		c:n index = 3
-		c:rivinro = 2
+		x_size    = 3
+		c index = 3
+		c row number = 2
 	*/
 	int z = pos;
-	while (z > x_koko) {
-		z = z - x_koko;
+	while (z > x_size) {
+		z = z - x_size;
 	}
-	if (z == x_koko) {
+	if (z == x_size) {
 	    z = 0; // z not decremented in the loop, so we are in the start of the first row.
 	}
 	pos = pos - z; // we are in the begin of the row
-	int rowNo = pos / x_koko;
+	int rowNo = pos / x_size;
 
 	return seq2[rowNo - 1];
 }
-
 
 Sequence_aligner::Sequence_aligner() {
 	//cout << "Creating sequence aligner without given sequences." << endl;
@@ -102,7 +106,7 @@ Sequence_aligner::Sequence_aligner(string s1, string s2) {
 Sequence_aligner::~Sequence_aligner() {
 	delete [] mp;
 	// Destroy subtables:
-	for (int i = 0; i < x_koko * y_koko; i++) {
+	for (int i = 0; i < x_size * y_size; i++) {
 		delete [] tbmp[i];
 	}
 	delete [] tbmp;
@@ -111,24 +115,23 @@ Sequence_aligner::~Sequence_aligner() {
 	}
 }
 
+/**
+  * Initialises the matrix. The first column and first row are filled with nulls by default.
+  * Different initialisation can be done by overwriting this method.
+  */
 void Sequence_aligner::initialize_matrix(string seq1, string seq2) {
-/*
-
-Initialises the matrix. The first column and first row are filled with nulls by default.
-Different initialisation can be done by overwriting this method.
-*/
 	if (verbalize) {
 	    cout << "Initializing matrix:" << endl;
 	}
-	y_koko = seq2.size() + 1;
-	x_koko = seq1.size() + 1;
+	y_size = seq2.size() + 1;
+	x_size = seq1.size() + 1;
 
-	if (verbalize) {cout << "\tx koko: " << x_koko << endl;}
-	if (verbalize) {cout << "\ty koko: " << y_koko << endl;}
+	if (verbalize) {cout << "\tx koko: " << x_size << endl;}
+	if (verbalize) {cout << "\ty koko: " << y_size << endl;}
 
-	mp = new int[x_koko * y_koko];
+	mp = new int[x_size * y_size];
 	if (verbalize) {cout << "\tCreating traceback-matrix." << endl;}
-	tbmp = new int*[x_koko * y_koko];
+	tbmp = new int*[x_size * y_size];
 
 
 	/*   ------
@@ -136,14 +139,14 @@ Different initialisation can be done by overwriting this method.
 		|0.....
 		|0.....
 	*/
-	for (int x = 0; x < x_koko; x++) {
+	for (int x = 0; x < x_size; x++) {
 		mp[x] = 0;
 	}
-	for (int y = 1; y < y_koko; y++) {
-		mp[x_koko*y] = 0;
+	for (int y = 1; y < y_size; y++) {
+		mp[x_size*y] = 0;
 	}
 	if (verbalize) {cout << "\tInitiatlizing traceback matrix..." << endl;}
-	for (int i = 0; i < x_koko * y_koko; i++) {
+	for (int i = 0; i < x_size * y_size; i++) {
 		tbmp[i] = new int[2]; // [left,ldiag,top], possible values: 1, 0.
 		for (int j = 0; j < 3; j++) {
 			tbmp[i][j] = 0;	// initialize values with zero.
@@ -153,26 +156,23 @@ Different initialisation can be done by overwriting this method.
 
 }
 
+/**
+  * Fills the matrix by using the scoring set to class.
+  */
 void Sequence_aligner::fill_matrix() {
-/*
-
-Fills the matrix by using the scoring set to class.
-
-*/
-
 	if (verbalize) {cout << "Calculating values for matrix..." << endl;}
 	if (mp == 0 || tbmp == 0) {
 		cerr << "\tERROR: cannot access matrix." << endl;
 		return;
 	}
 	int a, b, c;
-	for (int x = 1; x < x_koko; x++) {
-		for (int y = 1; y < y_koko; y++) {
+	for (int x = 1; x < x_size; x++) {
+		for (int y = 1; y < y_size; y++) {
 			a = f1(x,y); // ldiag
 			b = f2(x,y); // top
 			c = f3(x,y); // left
 
-            mp[x + x_koko * y] = max(a, b, c);
+            mp[x + x_size * y] = max(a, b, c);
             /*
              * Check which f() returns the max value,
              * or if multiple f() return max-value.
@@ -182,32 +182,32 @@ Fills the matrix by using the scoring set to class.
 			// Save the pointers:
 			if (a > b) {
 				if (a >= c) {
-					tbmp[x + x_koko * y][1] = 1;
+					tbmp[x + x_size * y][1] = 1;
 					if (a == c) {
-						tbmp[x + x_koko * y][0] = 1;
+						tbmp[x + x_size * y][0] = 1;
 					}
 				} else {
-				    tbmp[x + x_koko * y][0] = 1;
+				    tbmp[x + x_size * y][0] = 1;
 				}
 			} else if (b >= c) {
-				tbmp[x + x_koko * y][2] = 1;
+				tbmp[x + x_size * y][2] = 1;
 				if (b == c) {
-					tbmp[x + x_koko * y][0] = 1;
+					tbmp[x + x_size * y][0] = 1;
 				}
 			} else {
-			    tbmp[x + x_koko * y][0] = 1;
+			    tbmp[x + x_size * y][0] = 1;
 			}
 
 		}
 	}
 	/*
-		First row and column are added the pointers too.
-	*/
-	for (int x = 1; x < x_koko; x++) {
+	 * First row and column are added the pointers too.
+	 */
+	for (int x = 1; x < x_size; x++) {
 		tbmp[x][0] = 1;
 	}
-	for (int y = 1; y < y_koko; y++) {
-		tbmp[x_koko * y][2] = 1;
+	for (int y = 1; y < y_size; y++) {
+		tbmp[x_size * y][2] = 1;
 	}
 	if (verbalize) {cout << "Values for matrix calculated. " << endl;}
 }
@@ -217,21 +217,21 @@ Fills the matrix by using the scoring set to class.
  */
 void Sequence_aligner::print_matrix() {
 	cout << "    ";
-	for (int i = 1; i < x_koko; i++) {
+	for (int i = 1; i < x_size; i++) {
 		cout << seq1[i - 1] << " ";
 	}
 	
 	cout << endl;
 
-	for (int y = 0; y < y_koko; y++) {
+	for (int y = 0; y < y_size; y++) {
 		if (y > 0) {
 		    cout << seq2[y - 1] << " ";
 		}
 		else {
 		    cout << "  ";
 		}
-		for (int x = 0; x < x_koko; x++) {
-			cout << mp[x + x_koko * y] << " ";
+		for (int x = 0; x < x_size; x++) {
+			cout << mp[x + x_size * y] << " ";
 		}
 		cout << endl;
 	}
@@ -258,7 +258,7 @@ vector<Sequence>* Sequence_aligner::traceback() {
 
     // Global alignment -algorithm starts from last position -> both sequences globally aligned.
 
-	int pos = x_koko * y_koko;
+	int pos = x_size * y_size;
 
 	if (verbalize) {cout << "Traceback started, please wait. Pos: " << pos << endl;}
 
@@ -269,11 +269,11 @@ vector<Sequence>* Sequence_aligner::traceback() {
 		int z = pos;
 		int y = 0;
 		while (z > 0) {
-			if (z - x_koko <= 0) {
+			if (z - x_size <= 0) {
 			    break;
 			}
 			y++;
-			z = z - x_koko;
+			z = z - x_size;
 		}
 		int x = z - 1;
 		y = y - 1;
@@ -286,7 +286,7 @@ vector<Sequence>* Sequence_aligner::traceback() {
 			if (verbalize) {cout << "Match. Walking ldiag." << endl;}
 			result_sequence1 += get_seq1_letter(pos);
 			result_sequence2 += get_seq2_letter(pos);
-			pos = pos - x_koko - 1;
+			pos = pos - x_size - 1;
 			matches ++;
 		}
 
@@ -304,33 +304,33 @@ vector<Sequence>* Sequence_aligner::traceback() {
 
 				if (pos > 0) {
 					result_sequence1 += get_seq1_letter(pos);
-					if (pos > x_koko) { // Don't go over from seq2
+					if (pos > x_size) { // Don't go over from seq2
 						result_sequence2 += get_seq2_letter(pos);
 					} else {
 						result_sequence2 += "*";
 						caps++;
 					}
 				}
-				pos = pos - x_koko - 1;
+				pos = pos - x_size - 1;
 			}
 		} else if (ldiag(pos) >= top(pos)) {
 			if (verbalize) {cout << "Walking ldiag. " << endl;}
 
 			if (pos > 0) {
 				result_sequence1 += get_seq1_letter(pos);
-				if (pos > x_koko) { // Don't go over from seq2
+				if (pos > x_size) { // Don't go over from seq2
 					result_sequence2 += get_seq2_letter(pos);
 				} else {
 					result_sequence2 += "*";
 					caps++;
 				}
 			}
-			pos = pos - x_koko - 1;
+			pos = pos - x_size - 1;
 		} else {
 			if (verbalize) {cout << "Walking up" << endl;}
 			result_sequence1 += "*";
 			result_sequence2 += get_seq2_letter(pos);
-			pos -= x_koko;
+			pos -= x_size;
 			caps++;
 		}
 
@@ -412,17 +412,17 @@ int Sequence_aligner::max(int a, int b, int c) const {
   * ldiag
   */
 int Sequence_aligner::f1(int i, int j) {
-	int result = mp[(i - 1) + x_koko * (j - 1)] + match(i, j);
+	int result = mp[(i - 1) + x_size * (j - 1)] + match(i, j);
 	return result;
 }
 /** top */
 int Sequence_aligner::f2(int i, int j) {
-	int result = mp[i + x_koko * (j - 1)] + cap_penalty;
+	int result = mp[i + x_size * (j - 1)] + cap_penalty;
 	return result;
 }
 /** left */
 int Sequence_aligner::f3(int i, int j) {
-	int result = mp[(i - 1) + x_koko * j] + cap_penalty;
+	int result = mp[(i - 1) + x_size * j] + cap_penalty;
 	return result;
 }
 /** Returns match_score if match, else mismatch_score. */

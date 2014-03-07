@@ -31,7 +31,7 @@ vector<Sequence>* Local_aligner::traceback() {
   // start from the biggest element:
   int max = 0;
   int pos = 0;
-  for (int i = 0; i < x_koko * y_koko; i++) {
+  for (int i = 0; i < x_size * y_size; i++) {
   	if (mp[i] > max) {
       max = mp[i];
 	  pos = i;
@@ -54,12 +54,12 @@ vector<Sequence>* Local_aligner::traceback() {
 
     if (tbmp[pos][1] == 1) {
 	  result_sequence1 += get_seq1_letter(pos);
-	  if (pos > x_koko) { // don't go below seq2
+	  if (pos > x_size) { // don't go below seq2
 	    result_sequence2 += get_seq2_letter(pos);
 	  } else {
 	    result_sequence2 += "*";
 	  }
-	  pos = pos - x_koko - 1;
+	  pos = pos - x_size - 1;
 	} else if (tbmp[pos][0] == 1) { // horizontal move, add cap into seq2.
 	  // check that didn't go below seq1 index:
 	  if (pos > 0) {
@@ -72,13 +72,13 @@ vector<Sequence>* Local_aligner::traceback() {
 	} else if (tbmp[pos][2] == 1) { // vertical move, add cap into seq1.
 	  // Problem: seq2 is read over or below the index.
 	  // Must check that didn't go below the table bounds.
-      if (pos > x_koko) { // don't go below seq2's index
+      if (pos > x_size) { // don't go below seq2's index
         result_sequence1 += "*";
         result_sequence2 += get_seq2_letter(pos);
 	  } else {
-	    cout << "Debug: pos, x_koko:" << pos << ", " << x_koko << endl;
+	    cout << "Debug: pos, x_size:" << pos << ", " << x_size << endl;
 	  }
-	  pos -= x_koko;
+	  pos -= x_size;
 	} else {
 	  cout << "WARNING, NO TRACEBACK POINTER FOUND!" << endl;
 	  pos--;

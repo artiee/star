@@ -52,8 +52,8 @@ protected:
 	*/
 	int **tbmp; // Traceback matrices pointer.
 
-	int y_koko;	// Matrices y-size
-	int x_koko; // Matrices x-size
+	int y_size;	// Matrices y-size
+	int x_size; // Matrices x-size
 	string seq1; // Sequence 1
 	string seq2;
 	int cap_penalty; // How much costs to add a cap (empty space) to a sequence.
